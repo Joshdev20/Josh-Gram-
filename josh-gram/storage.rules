@@ -1,0 +1,44 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Default: Disallow read/write access to all paths unless explicitly allowed.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // Profile Pictures
+    // Users can upload their own profile picture.
+    // Anyone can read profile pictures (assuming profiles are public).
+    // File size and type checks can also be added.
+    // Path: /profilePictures/{userId}/{fileName}
+    match /profilePictures/{userId}/{fileName} {
+      allow read: if true; // Or `if request.auth != null;` if profiles are not public
+      allow write: if request.auth != null && request.auth.uid == userId
+                   && request.resource.size < 5 * 1024 * 1024 // Max 5MB
+                   && request.resource.contentType.matches('image/.*'); // Only images
+    }
+
+    // Post Media (images/videos)
+    // Users can upload media for their posts.
+    // Anyone can read post media.
+    // Path: /posts/{userId}/{fileName}
+    match /posts/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId
+                   && request.resource.size < 25 * 1024 * 1024 // Max 25MB for posts (example)
+                   && (request.resource.contentType.matches('image/.*') || request.resource.contentType.matches('video/.*'));
+    }
+
+    // Story Media (if implemented)
+    // Users can upload media for their stories.
+    // Read access might be more complex (e.g., only followers).
+    // Path: /stories/{userId}/{fileName}
+    // match /stories/{userId}/{fileName} {
+    //   allow read: if true; // This would make all story media public; refine based on requirements
+    //   allow write: if request.auth != null && request.auth.uid == userId
+    //                && request.resource.size < 15 * 1024 * 1024 // Max 15MB for stories (example)
+    //                && (request.resource.contentType.matches('image/.*') || request.resource.contentType.matches('video/.*'));
+    // }
+  }
+}

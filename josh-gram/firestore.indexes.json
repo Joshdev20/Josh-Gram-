@@ -1,0 +1,53 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+        // This index is for the global feed ordered by creation time.
+        // Firestore automatically creates single-field indexes, but if you query
+        // by 'createdAt' DESC and use other filters, a composite might be needed.
+        // For a simple orderBy('createdAt', 'desc') without other filters,
+        // an explicit index might not be strictly necessary unless Firestore console prompts for it.
+      ]
+    }
+    // Add other composite indexes as your application's query needs evolve.
+    // For example, if you implement searching posts by tags:
+    // {
+    //   "collectionGroup": "posts",
+    //   "queryScope": "COLLECTION",
+    //   "fields": [
+    //     { "fieldPath": "tags", "arrayConfig": "CONTAINS" },
+    //     { "fieldPath": "createdAt", "order": "DESCENDING" }
+    //   ]
+    // }
+  ],
+  "fieldOverrides": [
+    // Field overrides can be used to exempt specific fields from indexing
+    // or to configure indexing for specific fields (e.g., TTL policies).
+    // Example:
+    // {
+    //   "collectionGroup": "posts",
+    //   "fieldPath": "temporaryCacheField",
+    //   "indexes": [] // No indexes for this field
+    // }
+  ]
+}

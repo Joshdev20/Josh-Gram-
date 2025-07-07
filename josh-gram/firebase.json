@@ -1,0 +1,29 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "hosting": {
+    "public": ".next", // Vercel builds Next.js apps into the .next directory.
+                     // This is more for reference if Firebase Hosting was primary.
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html" // For SPA behavior if not using SSR/Next.js routing via Firebase.
+                                    // Vercel handles this for Next.js.
+      }
+    ]
+  }
+  // "functions": {
+  //   "source": "functions",
+  //   "runtime": "nodejs18" // Specify runtime if using functions
+  // }
+}

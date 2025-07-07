@@ -1,0 +1,107 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny all reads and writes initially for safety, unless specified below.
+    // match /{document=**} {
+    //  allow read, write: if false;
+    // }
+
+    // Users collection:
+    // - Authenticated users can read any user profile (for viewing profiles).
+    // - Users can create their own user document (on sign up/profile setup).
+    // - Users can only update or delete their own profile.
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth.uid == userId && request.resource.data.uid == userId;
+      allow update: if request.auth.uid == userId;
+      // allow delete: if request.auth.uid == userId; // Decide if users can delete their accounts
+    }
+
+    // Posts collection:
+    // - Authenticated users can create posts (userId must match auth.uid).
+    // - Anyone can read posts (for public feeds).
+    // - Users can only update (e.g. caption) or delete their own posts.
+    match /posts/{postId} {
+      allow read: if true; // Or request.auth != null for logged-in users only feed
+      allow create: if request.auth != null
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.username is string // Ensure username is provided
+                      && request.resource.data.mediaUrl is string; // Ensure mediaUrl is provided
+                      // Add other necessary field checks
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+
+      // TODO: Add specific rules for likes (e.g., as a subcollection or array field)
+      // Example for likes as an array:
+      // allow update (likes): if request.auth != null && (
+      //   (request.resource.data.likes.hasAny([request.auth.uid]) && resource.data.likes.hasAll(request.resource.data.likes.removeAll([request.auth.uid]))) || // unliking
+      //   (request.resource.data.likes.hasAll(resource.data.likes) && request.resource.data.likes.size() == resource.data.likes.size() + 1 && request.resource.data.likes[-1] == request.auth.uid) // liking
+      // );
+
+      // TODO: Add specific rules for comments (e.g., as a subcollection)
+      // match /comments/{commentId} {
+      //   allow read: if true;
+      //   allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      //   allow delete: if request.auth != null && (resource.data.userId == request.auth.uid || resource.data.postAuthorId == request.auth.uid); // Post author can also delete comments
+      // }
+    }
+
+    // Stories collection (Example structure, if implemented)
+    // match /stories/{storyId} {
+    //   allow read: if true; // Or more complex rules based on followers/privacy
+    //   allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    //   allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    // }
+
+    // Chats collection
+    match /chats/{chatId} {
+      // Allow read if the requesting user is one of the participants in the chat.
+      allow read: if request.auth.uid in resource.data.users;
+
+      // Allow create if the requesting user is one of the participants,
+      // the users array contains exactly two users (one of whom is the requester),
+      // and the chatId is correctly formed by sorting the two user UIDs.
+      allow create: if request.auth.uid in request.resource.data.users
+                    && request.resource.data.users.size() == 2
+                    && chatId == (request.resource.data.users[0] < request.resource.data.users[1] ?
+                                  request.resource.data.users[0] + '_' + request.resource.data.users[1] :
+                                  request.resource.data.users[1] + '_' + request.resource.data.users[0]);
+
+      // Allow update (e.g., for lastMessage, updatedAt) if the user is a participant.
+      // Specific fields like lastMessageText, lastMessageSenderId, lastMessageTimestamp, updatedAt should be validated.
+      allow update: if request.auth.uid in resource.data.users
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastMessageText', 'lastMessageSenderId', 'lastMessageTimestamp', 'updatedAt', 'userNames', 'userProfilePics', 'users']);
+                    // users array might be updated by arrayUnion in the client, ensure it's valid.
+
+      // Deleting chats might be a more complex operation or disallowed.
+      // allow delete: if false;
+    }
+
+    // Messages subcollection within a chat
+    match /chats/{chatId}/messages/{messageId} {
+      // Allow read if the user is a participant of the parent chat document.
+      allow read: if get(/databases/$(database)/documents/chats/$(chatId)).data.users.hasAny([request.auth.uid]);
+
+      // Allow create if the user is a participant of the parent chat
+      // and the senderId of the message is the user's own UID.
+      // Also, ensure required fields are present.
+      allow create: if get(/databases/$(database)/documents/chats/$(chatId)).data.users.hasAny([request.auth.uid])
+                    && request.resource.data.senderId == request.auth.uid
+                    && request.resource.data.text is string
+                    && request.resource.data.timestamp == request.time; // Ensure server timestamp is used
+
+      // Generally, messages are not updated or deleted by users in chat apps, or only under specific conditions.
+      allow update: if false; // Or allow for 'read' status updates by receiver
+      allow delete: if false; // Or allow sender to delete within a short time window, or admin deletion
+    }
+
+    // Follow relationships might be stored in user documents (followers/following arrays)
+    // or a separate 'follows' collection. Rules would need to reflect that.
+
+    // Notifications (Example structure)
+    // match /notifications/{userId}/userNotifications/{notificationId} {
+    //   allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+    //   allow create: if request.auth != null; // Typically created by backend functions
+    // }
+  }
+}

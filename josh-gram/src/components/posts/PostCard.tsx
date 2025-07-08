@@ -1,6 +1,7 @@
 import React from 'react';
 import Image from 'next/image'; // Using Next.js Image for optimization
-// import { Timestamp } from 'firebase/firestore'; // For typing, if needed directly
+import Link from 'next/link'; // Import Link
+import { Timestamp } from 'firebase/firestore'; // For typing createdAt fields
 
 // Define a type for the Post data
 export interface Post {
@@ -12,8 +13,8 @@ export interface Post {
   mediaType: 'image' | 'video';
   caption?: string;
   likes: string[]; // Array of user IDs who liked the post
-  comments: Array<{ userId: string; comment: string; createdAt: any }>; // Define comment structure
-  createdAt: any; // Firestore Timestamp or serverTimestamp()
+  comments: Array<{ userId: string; comment: string; createdAt: Timestamp | null }>; // Define comment structure
+  createdAt: Timestamp | null; // Firestore Timestamp or serverTimestamp() can be null before server sets it
   // Add any other fields like location, tags, etc.
 }
 
@@ -70,9 +71,13 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
       console.log("Post deleted successfully");
       // Optionally, trigger a state update in the parent component (Feed) to remove the post from UI immediately
       // This might not be necessary if the Feed component re-fetches or listens to real-time updates that reflect the deletion.
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error deleting post: ", error);
-      setDeleteError(`Failed to delete post: ${error.message}`);
+      if (error instanceof Error) {
+        setDeleteError(`Failed to delete post: ${error.message}`);
+      } else {
+        setDeleteError("An unknown error occurred while deleting the post.");
+      }
     } finally {
       setIsDeleting(false);
     }

@@ -190,54 +190,58 @@ export default function ChatRoomPage() {
 
 
       setNewMessage('');
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error sending message:", err);
-      setError("Failed to send message.");
+      if (err instanceof Error) {
+        setError(`Failed to send message: ${err.message}`);
+      } else {
+        setError("Failed to send message: An unknown error occurred.");
+      }
     } finally {
       setSending(false);
     }
   };
 
-  // Function to initiate a chat (could be called from a user profile page)
-  // This is more of a utility function that would live elsewhere or be triggered by UI
-  const startChat = async (targetUserId: string) => {
-    if (!currentUser || currentUser.uid === targetUserId) return null;
+  // // Function to initiate a chat (could be called from a user profile page)
+  // // This is more of a utility function that would live elsewhere or be triggered by UI
+  // const startChat = async (targetUserId: string) => {
+  //   if (!currentUser || currentUser.uid === targetUserId) return null;
 
-    const sortedUserIds = [currentUser.uid, targetUserId].sort();
-    const generatedChatId = sortedUserIds.join('_');
+  //   const sortedUserIds = [currentUser.uid, targetUserId].sort();
+  //   const generatedChatId = sortedUserIds.join('_');
 
-    const chatDocRef = doc(db, "chats", generatedChatId);
-    const chatDocSnap = await getDoc(chatDocRef);
+  //   const chatDocRef = doc(db, "chats", generatedChatId);
+  //   const chatDocSnap = await getDoc(chatDocRef);
 
-    if (!chatDocSnap.exists()) {
-        // Fetch user profiles to store names and pics
-        const currentUserProfileSnap = await getDoc(doc(db, "users", currentUser.uid));
-        const targetUserProfileSnap = await getDoc(doc(db, "users", targetUserId));
+  //   if (!chatDocSnap.exists()) {
+  //       // Fetch user profiles to store names and pics
+  //       const currentUserProfileSnap = await getDoc(doc(db, "users", currentUser.uid));
+  //       const targetUserProfileSnap = await getDoc(doc(db, "users", targetUserId));
 
-        if (!currentUserProfileSnap.exists() || !targetUserProfileSnap.exists()) {
-            console.error("One or both user profiles not found for creating chat.");
-            return null;
-        }
-        const currentUserData = currentUserProfileSnap.data();
-        const targetUserData = targetUserProfileSnap.data();
+  //       if (!currentUserProfileSnap.exists() || !targetUserProfileSnap.exists()) {
+  //           console.error("One or both user profiles not found for creating chat.");
+  //           return null;
+  //       }
+  //       const currentUserData = currentUserProfileSnap.data();
+  //       const targetUserData = targetUserProfileSnap.data();
 
-        await setDoc(chatDocRef, {
-            users: sortedUserIds,
-            userNames: {
-                [currentUser.uid]: currentUserData.username || "User",
-                [targetUserId]: targetUserData.username || "User",
-            },
-            userProfilePics: {
-                [currentUser.uid]: currentUserData.photoURL || null,
-                [targetUserId]: targetUserData.photoURL || null,
-            },
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        });
-    }
-    router.push(`/messages/${generatedChatId}`);
-    return generatedChatId;
-  };
+  //       await setDoc(chatDocRef, {
+  //           users: sortedUserIds,
+  //           userNames: {
+  //               [currentUser.uid]: currentUserData.username || "User",
+  //               [targetUserId]: targetUserData.username || "User",
+  //           },
+  //           userProfilePics: {
+  //               [currentUser.uid]: currentUserData.photoURL || null,
+  //               [targetUserId]: targetUserData.photoURL || null,
+  //           },
+  //           createdAt: serverTimestamp(),
+  //           updatedAt: serverTimestamp(),
+  //       });
+  //   }
+  //   router.push(`/messages/${generatedChatId}`);
+  //   return generatedChatId;
+  // };
 
 
   if (authLoading || loadingRoom) {

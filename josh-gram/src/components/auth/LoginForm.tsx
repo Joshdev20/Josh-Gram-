@@ -22,8 +22,12 @@ const LoginForm = () => {
       // Handle successful login (e.g., redirect to home)
       console.log('User logged in successfully!');
       // router.push('/'); // Example redirect, ensure 'router' is available if used
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred during login.");
+      }
       console.error("Error logging in:", err);
     } finally {
       setLoading(false);

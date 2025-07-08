@@ -4,7 +4,7 @@ import ProfileSetupForm from '@/components/auth/ProfileSetupForm';
 import { useAuth } from '@/context/AuthContext';
 // import { useRouter } from 'next/navigation'; // For App Router, if redirection is needed
 import Link from 'next/link';
-import React, { useEffect } from 'react';
+import React from 'react'; // Removed useEffect
 
 export default function ProfileSetupPage() {
   const { currentUser, loading } = useAuth();
@@ -17,7 +17,7 @@ export default function ProfileSetupPage() {
   //   }
   //   // Optional: If user already has a profile, redirect to home or dashboard
   //   // This would require fetching profile data and checking if it exists
-  // }, [currentUser, loading, router]);
+  // }, [currentUser, loading, router]); // This useEffect was unused
 
   if (loading) {
     return (

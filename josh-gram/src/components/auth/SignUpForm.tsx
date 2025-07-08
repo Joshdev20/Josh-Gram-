@@ -22,8 +22,12 @@ const SignUpForm = () => {
       // Handle successful sign-up (e.g., redirect to profile setup or home)
       console.log('User signed up successfully!');
       // router.push('/'); // Example redirect, ensure 'router' is available if used
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred during sign up.");
+      }
       console.error("Error signing up:", err);
     } finally {
       setLoading(false);

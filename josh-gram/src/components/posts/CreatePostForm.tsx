@@ -6,6 +6,7 @@ import { db, storage } from '@/firebaseConfig';
 import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 // import { useRouter } from 'next/navigation';
+import Image from 'next/image'; // Import next/image
 
 const CreatePostForm = () => {
   const { currentUser } = useAuth();
@@ -76,9 +77,9 @@ const CreatePostForm = () => {
           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
           setUploadProgress(progress);
         },
-        (uploadError: any) => {
+        (uploadError) => { // Type for uploadError is StorageError from firebase/storage
           console.error("Upload error:", uploadError);
-          setError(`Upload failed: ${uploadError.message}`);
+          setError(`Upload failed: ${uploadError.message || 'Unknown storage error'}`);
           setLoading(false);
         },
         async () => {
@@ -105,16 +106,24 @@ const CreatePostForm = () => {
             setFileType(null);
             setUploadProgress(0);
             // router.push('/'); // Redirect to feed or user's profile
-          } catch (firestoreError: any) {
+          } catch (firestoreError) {
             console.error("Error saving post to Firestore:", firestoreError);
-            setError(`Error saving post: ${firestoreError.message}`);
+            if (firestoreError instanceof Error) {
+              setError(`Error saving post: ${firestoreError.message}`);
+            } else {
+              setError("An unknown error occurred while saving the post to database.");
+            }
           } finally {
             setLoading(false);
           }
         }
       );
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred while creating the post.");
+      }
       console.error("Error creating post:", err);
       setLoading(false);
     }
@@ -160,7 +169,11 @@ const CreatePostForm = () => {
       {filePreview && (
         <div className="mt-4 border border-gray-200 rounded-md p-2">
           <p className="text-sm font-medium text-gray-700 mb-1">Preview:</p>
-          {fileType === 'image' && <img src={filePreview} alt="Preview" className="max-h-60 w-auto rounded-md mx-auto" />}
+          {fileType === 'image' &&
+            <div className="relative w-full max-w-xs mx-auto aspect-square"> {/* Added container for layout */}
+              <Image src={filePreview} alt="Preview" layout="fill" objectFit="contain" className="rounded-md" />
+            </div>
+          }
           {fileType === 'video' && <video src={filePreview} controls className="max-h-60 w-auto rounded-md mx-auto">Your browser does not support the video tag.</video>}
         </div>
       )}

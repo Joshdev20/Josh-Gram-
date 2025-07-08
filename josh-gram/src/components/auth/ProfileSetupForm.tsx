@@ -76,9 +76,22 @@ const ProfileSetupForm = () => {
         photoURL = await getDownloadURL(photoRef);
       }
 
-      const userProfileData: any = { // Use 'any' for flexibility or define a more specific type
+      // Define a type for the data being set/merged
+      interface UserProfileUpdateData {
+        uid: string;
+        email?: string | null;
+        username: string;
+        bio: string;
+        photoURL: string;
+        updatedAt: any; // serverTimestamp()
+        createdAt?: any; // serverTimestamp(), optional
+        followers?: string[]; // optional
+        following?: string[]; // optional
+      }
+
+      const userProfileData: UserProfileUpdateData = {
         uid: currentUser.uid,
-        email: currentUser.email, // Email might not change, but good to have
+        email: currentUser.email,
         username: username.trim(),
         bio: bio.trim(),
         photoURL, // This will be new URL or existing one
@@ -98,8 +111,12 @@ const ProfileSetupForm = () => {
 
       console.log(isEditing ? "Profile updated successfully!" : "Profile created successfully!");
       router.push(`/profile/${currentUser.uid}`); // Redirect to the user's profile page
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred while saving the profile.");
+      }
       console.error("Error setting up profile:", err);
     } finally {
       setLoading(false);
@@ -107,14 +124,22 @@ const ProfileSetupForm = () => {
   };
 
   return (
+import Image from 'next/image'; // Import next/image
+
+// ... (rest of imports)
+
+const ProfileSetupForm = () => {
+  // ... (state and functions)
+
+  return (
     <form onSubmit={handleSubmit} className="space-y-6 p-8 bg-white shadow-xl rounded-lg">
       <h2 className="text-3xl font-bold text-center text-gray-900">Setup Your Profile</h2>
 
       <div className="flex flex-col items-center space-y-2">
         {photoPreview ? (
-          <img src={photoPreview} alt="Profile Preview" className="w-32 h-32 rounded-full object-cover" />
+          <Image src={photoPreview} alt="Profile Preview" width={128} height={128} className="w-32 h-32 rounded-full object-cover" />
         ) : currentUser?.photoURL ? (
-            <img src={currentUser.photoURL} alt="Current Profile" className="w-32 h-32 rounded-full object-cover" />
+            <Image src={currentUser.photoURL} alt="Current Profile" width={128} height={128} className="w-32 h-32 rounded-full object-cover" />
         ) : (
           <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
             No Photo

@@ -20,8 +20,12 @@ const PasswordResetForm = () => {
     try {
       await sendPasswordResetEmail(auth, email);
       setMessage('Password reset email sent! Check your inbox.');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred while sending the password reset email.");
+      }
       console.error("Error sending password reset email:", err);
     } finally {
       setLoading(false);

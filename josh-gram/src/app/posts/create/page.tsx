@@ -4,7 +4,7 @@ import CreatePostForm from '@/components/posts/CreatePostForm';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 // import { useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
+import React from 'react'; // Removed useEffect
 
 export default function CreatePostPage() {
   const { currentUser, loading } = useAuth();
@@ -14,7 +14,7 @@ export default function CreatePostPage() {
   //   if (!loading && !currentUser) {
   //     // router.push('/login?redirect=/posts/create'); // Redirect to login if not authenticated
   //   }
-  // }, [currentUser, loading, router]);
+  // }, [currentUser, loading, router]); // This useEffect was unused
 
   if (loading) {
     return (

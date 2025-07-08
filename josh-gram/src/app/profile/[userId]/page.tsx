@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation'; // useRouter for navigation if needed
+import { useParams } from 'next/navigation'; // Removed useRouter
 import Link from 'next/link';
 import Image from 'next/image';
-import { doc, getDoc, collection, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
+// Removed getDoc, PostCard component import. Kept doc, collection, query, where, orderBy, onSnapshot, Timestamp
+import { doc, collection, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
 import { db } from '@/firebaseConfig';
 import { useAuth } from '@/context/AuthContext';
-import PostCard, { Post as PostType } from '@/components/posts/PostCard'; // Re-using PostCard
+import { Post as PostType } from '@/components/posts/PostCard'; // Kept PostType
 
 // Define a type for User Profile data from Firestore
 interface UserProfile {

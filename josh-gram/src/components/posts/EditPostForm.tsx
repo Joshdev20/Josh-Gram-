@@ -6,6 +6,7 @@ import { db } from '@/firebaseConfig';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation'; // For redirecting after edit
 import { Post as PostType } from './PostCard'; // Assuming PostType is exported from PostCard
+import Image from 'next/image'; // Import next/image
 
 interface EditPostFormProps {
   postId: string;
@@ -48,9 +49,13 @@ const EditPostForm: React.FC<EditPostFormProps> = ({ postId }) => {
           setError("Post not found.");
           setPost(null);
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error("Error fetching post for editing:", err);
-        setError("Failed to load post data for editing.");
+        if (err instanceof Error) {
+          setError(`Failed to load post data for editing: ${err.message}`);
+        } else {
+          setError("Failed to load post data for editing: An unknown error occurred.");
+        }
       } finally {
         setLoading(false);
       }
@@ -83,9 +88,13 @@ const EditPostForm: React.FC<EditPostFormProps> = ({ postId }) => {
       });
       console.log("Post caption updated successfully!");
       router.push(`/profile/${currentUser.uid}`); // Or router.back() or router.push(`/posts/${postId}`)
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error updating post:", err);
-      setError(`Failed to update post: ${err.message}`);
+      if (err instanceof Error) {
+        setError(`Failed to update post: ${err.message}`);
+      } else {
+        setError("An unknown error occurred while updating the post.");
+      }
     } finally {
       setSaving(false);
     }
@@ -111,7 +120,11 @@ const EditPostForm: React.FC<EditPostFormProps> = ({ postId }) => {
       {post.mediaUrl && (
         <div className="mt-4 border border-gray-200 rounded-md p-2">
           <p className="text-sm font-medium text-gray-700 mb-1">Media (cannot be changed):</p>
-          {post.mediaType === 'image' && <img src={post.mediaUrl} alt="Post media" className="max-h-60 w-auto rounded-md mx-auto" />}
+          {post.mediaType === 'image' &&
+            <div className="relative w-full max-w-xs mx-auto aspect-square"> {/* Container for layout */}
+              <Image src={post.mediaUrl} alt="Post media" layout="fill" objectFit="contain" className="rounded-md" />
+            </div>
+          }
           {post.mediaType === 'video' && <video src={post.mediaUrl} controls className="max-h-60 w-auto rounded-md mx-auto">Your browser does not support the video tag.</video>}
         </div>
       )}

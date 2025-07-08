@@ -24,8 +24,12 @@ const GoogleSignInButton = () => {
       console.log('User signed in with Google successfully!', result.user);
       // Handle successful sign-in (e.g., redirect to profile setup or home)
       // router.push('/'); // Example redirect
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred during Google Sign-In.");
+      }
       console.error("Error with Google Sign-In:", err);
       // Handle specific errors like popup closed by user, etc.
       // if (err.code === 'auth/popup-closed-by-user') { ... }

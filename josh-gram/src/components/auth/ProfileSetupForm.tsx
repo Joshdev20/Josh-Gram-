@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'; // Added useEffect back just in case, will re-lint later
 import { useAuth } from '@/context/AuthContext';
-import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore'; // Added getDoc back
+import { doc, setDoc, serverTimestamp, getDoc, FieldValue } from 'firebase/firestore'; // Added getDoc back and FieldValue
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/firebaseConfig';
 import { useRouter } from 'next/navigation';
@@ -79,8 +79,8 @@ const ProfileSetupForm = () => {
         username: string;
         bio: string;
         photoURL: string;
-        updatedAt: any;
-        createdAt?: any;
+        updatedAt: FieldValue;
+        createdAt?: FieldValue;
         followers?: string[];
         following?: string[];
       }

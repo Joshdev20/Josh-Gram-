@@ -15,7 +15,7 @@ import {
   addDoc,
   serverTimestamp,
   Timestamp,
-  getDoc,
+  // getDoc, // Removed as it's unused after commenting out startChat
   setDoc,
   arrayUnion
 } from 'firebase/firestore';

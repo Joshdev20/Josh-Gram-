@@ -1,5 +1,5 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app"; // Added FirebaseApp
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
@@ -28,7 +28,7 @@ if (typeof window !== 'undefined' && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY) 
 
 
 // Initialize Firebase
-let app;
+let app: FirebaseApp; // Explicitly type app
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);
 } else {

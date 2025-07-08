@@ -1,27 +1,25 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Added useEffect back just in case, will re-lint later
 import { useAuth } from '@/context/AuthContext';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore'; // Added getDoc back
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/firebaseConfig';
-import { useRouter } from 'next/navigation'; // If using App Router
-import { getDoc } from 'firebase/firestore'; // Import getDoc
-import { useEffect } from 'react'; // Import useEffect
+import { useRouter } from 'next/navigation';
+import Image from 'next/image'; // Correctly placed import for Next.js Image
 
 const ProfileSetupForm = () => {
   const { currentUser } = useAuth();
-  const router = useRouter(); // If using App Router
+  const router = useRouter();
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false); // To track if it's an edit operation
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    // Fetch existing profile data if currentUser exists, to pre-fill form for editing
     const fetchUserProfile = async () => {
       if (currentUser) {
         setLoading(true);
@@ -31,10 +29,9 @@ const ProfileSetupForm = () => {
           const userData = docSnap.data();
           setUsername(userData.username || '');
           setBio(userData.bio || '');
-          // photoPreview will be set by existing photoURL if no new photo is selected (handled in JSX)
-          setIsEditing(true); // Indicates that we are editing an existing profile
+          setIsEditing(true);
         } else {
-          setIsEditing(false); // New profile setup
+          setIsEditing(false);
         }
         setLoading(false);
       }
@@ -69,24 +66,23 @@ const ProfileSetupForm = () => {
     setError(null);
 
     try {
-      let photoURL = currentUser.photoURL || ''; // Default to existing photoURL
-      if (photo) { // If a new photo is selected, upload it
+      let photoURL = currentUser.photoURL || '';
+      if (photo) {
         const photoRef = ref(storage, `profilePictures/${currentUser.uid}/${photo.name}`);
         await uploadBytes(photoRef, photo);
         photoURL = await getDownloadURL(photoRef);
       }
 
-      // Define a type for the data being set/merged
       interface UserProfileUpdateData {
         uid: string;
         email?: string | null;
         username: string;
         bio: string;
         photoURL: string;
-        updatedAt: any; // serverTimestamp()
-        createdAt?: any; // serverTimestamp(), optional
-        followers?: string[]; // optional
-        following?: string[]; // optional
+        updatedAt: any;
+        createdAt?: any;
+        followers?: string[];
+        following?: string[];
       }
 
       const userProfileData: UserProfileUpdateData = {
@@ -94,23 +90,20 @@ const ProfileSetupForm = () => {
         email: currentUser.email,
         username: username.trim(),
         bio: bio.trim(),
-        photoURL, // This will be new URL or existing one
+        photoURL,
         updatedAt: serverTimestamp(),
       };
 
       if (!isEditing) {
-        // For new profiles, set createdAt and initialize followers/following
         userProfileData.createdAt = serverTimestamp();
         userProfileData.followers = [];
         userProfileData.following = [];
       }
 
-      // Use setDoc with merge: true to update existing doc or create if not existing
-      // This is crucial for preserving fields like 'followers', 'following', 'createdAt' during edits.
       await setDoc(doc(db, "users", currentUser.uid), userProfileData, { merge: true });
 
       console.log(isEditing ? "Profile updated successfully!" : "Profile created successfully!");
-      router.push(`/profile/${currentUser.uid}`); // Redirect to the user's profile page
+      router.push(`/profile/${currentUser.uid}`);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -122,14 +115,6 @@ const ProfileSetupForm = () => {
       setLoading(false);
     }
   };
-
-  return (
-import Image from 'next/image'; // Import next/image
-
-// ... (rest of imports)
-
-const ProfileSetupForm = () => {
-  // ... (state and functions)
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 p-8 bg-white shadow-xl rounded-lg">
